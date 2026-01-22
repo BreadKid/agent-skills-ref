@@ -7,15 +7,15 @@
     <title>Skill Reference Editor</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --text-color: #c9d1d9;
-            --border-color: #30363d;
-            --header-bg: #161b22;
-            --input-bg: #0d1117;
-            --accent-color: #238636;
-            --accent-hover: #2ea043;
-            --error-color: #f85149;
-            --code-bg: #161b22;
+            --bg-color: #ffffff;
+            --text-color: #24292f;
+            --border-color: #d0d7de;
+            --header-bg: #f6f8fa;
+            --input-bg: #ffffff;
+            --accent-color: #1f883d;
+            --accent-hover: #1a7f37;
+            --error-color: #cf222e;
+            --code-bg: #f6f8fa;
         }
 
         body {
@@ -69,7 +69,7 @@
         }
 
         button {
-            background-color: #21262d;
+            background-color: #f6f8fa;
             color: var(--text-color);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -81,14 +81,14 @@
         }
 
         button:hover {
-            background-color: #30363d;
-            border-color: #8b949e;
+            background-color: #f3f4f6;
+            border-color: rgba(27, 31, 36, 0.15);
         }
 
         button.primary {
             background-color: var(--accent-color);
             color: white;
-            border-color: rgba(240, 246, 252, 0.1);
+            border-color: rgba(27, 31, 36, 0.15);
         }
 
         button.primary:hover {
@@ -129,7 +129,7 @@
         .result-header {
             font-size: 12px;
             font-weight: 600;
-            color: #8b949e;
+            color: #57606a;
             margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
@@ -143,15 +143,15 @@
         }
 
         .status-success {
-            background-color: rgba(46, 160, 67, 0.15);
-            color: #3fb950;
-            border: 1px solid rgba(46, 160, 67, 0.4);
+            background-color: rgba(31, 136, 61, 0.15);
+            color: #1a7f37;
+            border: 1px solid rgba(31, 136, 61, 0.4);
         }
 
         .status-error {
-            background-color: rgba(248, 81, 73, 0.15);
-            color: #ff7b72;
-            border: 1px solid rgba(248, 81, 73, 0.4);
+            background-color: rgba(207, 34, 46, 0.15);
+            color: #cf222e;
+            border: 1px solid rgba(207, 34, 46, 0.4);
         }
 
         .loading {
@@ -161,24 +161,24 @@
 
         /* Syntax highlighting simple simulation */
         .key {
-            color: #79c0ff;
+            color: #0550ae;
         }
 
         .string {
-            color: #a5d6ff;
+            color: #0a3069;
         }
 
         .number {
-            color: #79c0ff;
+            color: #0550ae;
         }
 
         .boolean {
-            color: #56d364;
+            color: #116329;
         }
 
         .input-error {
-            border-color: #f85149 !important;
-            box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.3) !important;
+            border-color: #cf222e !important;
+            box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.25) !important;
             animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
         }
 
@@ -205,6 +205,18 @@
                 transform: translate3d(4px, 0, 0);
             }
         }
+
+        .placeholder-hint {
+            color: #8c959f;
+            font-style: italic;
+            display: block;
+            white-space: normal;
+        }
+
+        .result-box.error-bg {
+            background-color: #ffebe9 !important;
+            border-color: rgba(207, 34, 46, 0.4);
+        }
     </style>
 </head>
 
@@ -216,29 +228,11 @@
     <div class="container">
         <div class="editor-pane">
             <div class="toolbar">
-                <div style="font-weight: 600; font-size: 14px; align-self: center;">Input (Markdown)</div>
+                <div style="font-weight: 600; font-size: 14px; align-self: center;">Your SKILLS.md</div>
             </div>
             <textarea id="input-text"
-                placeholder="---\nname: my-skill\ndescription: Skill description\n---\n\nSkill content..."
-                spellcheck="false">---
-name: example-skill
-description: A powerful example skill for demonstration
-version: 1.0.0
----
-
-# Example Skill
-
-This is a demonstration of the Agent Skills format.
-
-## Tools
-
-- tool_one
-- tool_two
-
-## Instructions
-
-1. Use this skill to demonstrate features
-2. Validate using the API
+                placeholder="---&#10;name: my-skill&#10;description: Skill description&#10;---&#10;&#10;Skill content..."
+                spellcheck="false">
 </textarea>
             <div style="font-size: 12px; color: #8b949e; margin-top: 8px; text-align: right;" id="char-count">0 /
                 1000000 chars</div>
@@ -256,17 +250,23 @@ This is a demonstration of the Agent Skills format.
                 <span>VALIDATION RESULT</span>
                 <span id="validate-status" class="status-badge" style="display: none;"></span>
             </div>
-            <div id="validate-output" class="result-box" style="flex: 1;">Run validation to see results...</div>
+            <div id="validate-output" class="result-box" style="flex: 1;">
+                <span class="placeholder-hint">Run validation to see results...</span>
+            </div>
 
             <div class="result-header">
                 <span>PROPERTIES</span>
             </div>
-            <div id="properties-output" class="result-box" style="flex: 1;">Extract properties to see results...</div>
+            <div id="properties-output" class="result-box" style="flex: 1;">
+                <span class="placeholder-hint">Extract properties to see results...</span>
+            </div>
 
             <div class="result-header">
                 <span>GENERATED PROMPT (XML)</span>
             </div>
-            <div id="prompt-output" class="result-box" style="flex: 2;">Generate prompt to see results...</div>
+            <div id="prompt-output" class="result-box" style="flex: 2;">
+                <span class="placeholder-hint">Generate prompt to see results...</span>
+            </div>
         </div>
     </div>
 
@@ -281,7 +281,7 @@ This is a demonstration of the Agent Skills format.
             const len = input.value.length;
             charCount.textContent = `${len} / ${MAX_CHARS} chars`;
             if (len > MAX_CHARS) {
-                charCount.style.color = '#f85149';
+                charCount.style.color = '#cf222e';
             } else {
                 charCount.style.color = '#8b949e';
             }
@@ -314,6 +314,7 @@ This is a demonstration of the Agent Skills format.
 
             const outputBox = document.getElementById(outputId);
 
+            outputBox.classList.remove('error-bg');
             outputBox.textContent = 'Loading...';
             outputBox.style.opacity = '0.7';
 
@@ -327,7 +328,13 @@ This is a demonstration of the Agent Skills format.
                 });
 
                 const data = await response.json();
-                outputBox.textContent = endpoint.includes('prompt') ? data.prompt : formatJSON(data);
+
+                if (!response.ok) {
+                    outputBox.classList.add('error-bg');
+                    outputBox.textContent = formatJSON(data);
+                } else {
+                    outputBox.textContent = endpoint.includes('prompt') ? data.prompt : formatJSON(data);
+                }
 
                 if (statusId && endpoint.includes('validate')) {
                     const statusBadge = document.getElementById(statusId);
@@ -339,9 +346,11 @@ This is a demonstration of the Agent Skills format.
                     } else {
                         statusBadge.textContent = 'INVALID';
                         statusBadge.className = 'status-badge status-error';
+                        outputBox.classList.add('error-bg');
                     }
                 }
             } catch (error) {
+                outputBox.classList.add('error-bg');
                 outputBox.textContent = `Error: ${error.message}\n\nMake sure the API server is running at ${API_URL}`;
                 if (statusId) {
                     const statusBadge = document.getElementById(statusId);
