@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Reference Editor</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --border-color: #30363d;
+            --header-bg: #161b22;
+            --input-bg: #0d1117;
+            --accent-color: #238636;
+            --accent-hover: #2ea043;
+            --error-color: #f85149;
+            --code-bg: #161b22;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        h1 {
+            font-size: 16px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .editor-pane,
+        .preview-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            min-width: 0;
+        }
+
+        .editor-pane {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .toolbar {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            background-color: #21262d;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 5px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #30363d;
+            border-color: #8b949e;
+        }
+
+        button.primary {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: rgba(240, 246, 252, 0.1);
+        }
+
+        button.primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        textarea {
+            flex: 1;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+        }
+
+        .result-box {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow: auto;
+        }
+
+        .result-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #8b949e;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background-color: rgba(46, 160, 67, 0.15);
+            color: #3fb950;
+            border: 1px solid rgba(46, 160, 67, 0.4);
+        }
+
+        .status-error {
+            background-color: rgba(248, 81, 73, 0.15);
+            color: #ff7b72;
+            border: 1px solid rgba(248, 81, 73, 0.4);
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Syntax highlighting simple simulation */
+        .key {
+            color: #79c0ff;
+        }
+
+        .string {
+            color: #a5d6ff;
+        }
+
+        .number {
+            color: #79c0ff;
+        }
+
+        .boolean {
+            color: #56d364;
+        }
+
+        .input-error {
+            border-color: #f85149 !important;
+            box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.3) !important;
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translate3d(-1px, 0, 0);
+            }
+
+            20%,
+            80% {
+                transform: translate3d(2px, 0, 0);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translate3d(-4px, 0, 0);
+            }
+
+            40%,
+            60% {
+                transform: translate3d(4px, 0, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Skill Reference Editor</h1>
+    </header>
+
+    <div class="container">
+        <div class="editor-pane">
+            <div class="toolbar">
+                <div style="font-weight: 600; font-size: 14px; align-self: center;">Input (Markdown)</div>
+            </div>
+            <textarea id="input-text"
+                placeholder="---\nname: my-skill\ndescription: Skill description\n---\n\nSkill content..."
+                spellcheck="false">---
+name: example-skill
+description: A powerful example skill for demonstration
+version: 1.0.0
+---
+
+# Example Skill
+
+This is a demonstration of the Agent Skills format.
+
+## Tools
+
+- tool_one
+- tool_two
+
+## Instructions
+
+1. Use this skill to demonstrate features
+2. Validate using the API
+</textarea>
+            <div style="font-size: 12px; color: #8b949e; margin-top: 8px; text-align: right;" id="char-count">0 /
+                1000000 chars</div>
+        </div>
+
+        <div class="preview-pane">
+            <div class="toolbar">
+                <button class="primary" onclick="runAll()">Run All</button>
+                <button onclick="validateText()">Validate</button>
+                <button onclick="getProperties()">Properties</button>
+                <button onclick="getPrompt()">Prompt</button>
+            </div>
+
+            <div class="result-header">
+                <span>VALIDATION RESULT</span>
+                <span id="validate-status" class="status-badge" style="display: none;"></span>
+            </div>
+            <div id="validate-output" class="result-box" style="flex: 1;">Run validation to see results...</div>
+
+            <div class="result-header">
+                <span>PROPERTIES</span>
+            </div>
+            <div id="properties-output" class="result-box" style="flex: 1;">Extract properties to see results...</div>
+
+            <div class="result-header">
+                <span>GENERATED PROMPT (XML)</span>
+            </div>
+            <div id="prompt-output" class="result-box" style="flex: 2;">Generate prompt to see results...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:9900';
+        const MAX_CHARS = 1000000;
+
+        const input = document.getElementById('input-text');
+        const charCount = document.getElementById('char-count');
+
+        input.addEventListener('input', () => {
+            const len = input.value.length;
+            charCount.textContent = `${len} / ${MAX_CHARS} chars`;
+            if (len > MAX_CHARS) {
+                charCount.style.color = '#f85149';
+            } else {
+                charCount.style.color = '#8b949e';
+            }
+        });
+
+        // Trigger initial count
+        input.dispatchEvent(new Event('input'));
+
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2);
+        }
+
+        async function callAPI(endpoint, outputId, statusId = null) {
+            const content = input.value;
+
+            // Validate empty input (trimmed)
+            if (!content || content.trim() === '') {
+                input.classList.remove('input-error');
+                // Force reflow
+                void input.offsetWidth;
+                input.classList.add('input-error');
+
+                // Remove class after animation completes
+                setTimeout(() => {
+                    input.classList.remove('input-error');
+                }, 500);
+
+                return;
+            }
+
+            const outputBox = document.getElementById(outputId);
+
+            outputBox.textContent = 'Loading...';
+            outputBox.style.opacity = '0.7';
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content })
+                });
+
+                const data = await response.json();
+                outputBox.textContent = endpoint.includes('prompt') ? data.prompt : formatJSON(data);
+
+                if (statusId && endpoint.includes('validate')) {
+                    const statusBadge = document.getElementById(statusId);
+                    statusBadge.style.display = 'inline-block';
+
+                    if (data.valid) {
+                        statusBadge.textContent = 'VALID';
+                        statusBadge.className = 'status-badge status-success';
+                    } else {
+                        statusBadge.textContent = 'INVALID';
+                        statusBadge.className = 'status-badge status-error';
+                    }
+                }
+            } catch (error) {
+                outputBox.textContent = `Error: ${error.message}\n\nMake sure the API server is running at ${API_URL}`;
+                if (statusId) {
+                    const statusBadge = document.getElementById(statusId);
+                    statusBadge.style.display = 'inline-block';
+                    statusBadge.textContent = 'ERROR';
+                    statusBadge.className = 'status-badge status-error';
+                }
+            } finally {
+                outputBox.style.opacity = '1';
+            }
+        }
+
+        function validateText() {
+            callAPI('/validate/text', 'validate-output', 'validate-status');
+        }
+
+        function getProperties() {
+            callAPI('/properties/text', 'properties-output');
+        }
+
+        function getPrompt() {
+            callAPI('/prompt/text', 'prompt-output');
+        }
+
+        function runAll() {
+            validateText();
+            getProperties();
+            getPrompt();
+        }
+    </script>
+</body>
+
+</html>
