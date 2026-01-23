@@ -14,7 +14,7 @@ from parser import parse_frontmatter
 from validator import validate_metadata
 
 app = FastAPI(
-    title="Skills Reference API",
+    title="Agent Skills Reference API",
     description="API for validating, reading, and managing Agent Skills",
     version="0.1.0"
 )
