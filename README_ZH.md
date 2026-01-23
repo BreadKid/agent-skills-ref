@@ -51,6 +51,7 @@ http://localhost:9900
 * `POST /prompt/text`: 将 Skill 文本转换为 Agent XML Prompt 格式。
 
 ## 页面展示
+[https://agent-skills-ref.zeabur.app](https://agent-skills-ref.zeabur.app)
 
 ### 初始页面
 
